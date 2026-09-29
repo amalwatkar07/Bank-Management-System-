@@ -1,0 +1,235 @@
+#include <stdio.h>
+
+#define MAX_ACCOUNTS 100
+#define MAX_PIN_LENGTH 5
+#define MAX_NAME_LENGTH 50
+
+// Account structure to hold account details
+struct Account {
+    int accountNumber;
+    char customerName[MAX_NAME_LENGTH];
+    char pin[MAX_PIN_LENGTH];
+    float balance;
+};
+
+struct Account accounts[MAX_ACCOUNTS]; //accounts[] can hold values for all the fields defined in Account. It is an instance of the struct. Like, a variable, no complication.
+int accountCount = 0;
+
+// Function to create a new account
+void createAccount() {
+    if (accountCount >= MAX_ACCOUNTS) {
+        printf("Account limit reached. Cannot create new account.\n");
+        return;
+    }
+    
+    struct Account newAccount;
+    printf("Enter Account Number: ");
+    scanf("%d", &newAccount.accountNumber); //In newAccount in Account, save accountNumber
+    
+    printf("Enter Customer Name: ");
+    getchar();  // to clear the newline character left by scanf
+    fgets(newAccount.customerName, MAX_NAME_LENGTH, stdin); //Ensure name doesn't exit limit
+    newAccount.customerName[strcspn(newAccount.customerName, "\n")] = '\0';  // Remove newline at end
+
+    printf("Set PIN: ");
+    scanf("%s", newAccount.pin); //No & needed, because newAccount.pin is an array, and it points to the first elemnt already
+
+    printf("Enter Initial Balance: ");
+    scanf("%f", &newAccount.balance);
+
+    accounts[accountCount++] = newAccount; //accountCount=0+1=1. Element 1 of accounts became newAccount
+    printf("Account created successfully.\n");
+}
+
+// Function to find account by account number
+struct Account* findAccount(int accountNumber) { //it will return reference to an account in accounts array or NULL if no. is unrecognised.
+    for (int i = 0; i < accountCount; i++) {
+        if (accounts[i].accountNumber == accountNumber) {
+            return &accounts[i];
+        }
+    }
+    return NULL;
+}
+
+// Function to update account details
+void updateAccount() {
+    int accountNumber;
+    printf("Enter Account Number to update: ");
+    scanf("%d", &accountNumber);
+
+    struct Account* account = findAccount(accountNumber); //findAccount return an account assigned to a no. So, account in Account = that account of that number.
+    if (account == NULL) { //i.e., if findAccount returnd NULL
+        printf("Account not found.\n");
+        return;
+    }
+
+    printf("Enter New Customer Name: ");
+    getchar();  // to clear the newline character left by scanf
+    fgets(account->customerName, MAX_NAME_LENGTH, stdin); //get customer name and store it in customerName in account
+    account->customerName[strcspn(account->customerName, "\n")] = '\0';  // Remove newline at end
+
+    printf("Enter New PIN: ");
+    scanf("%s", account->pin); //store PIN in pin
+
+    printf("Account updated successfully.\n");
+}
+
+// Function to display account details
+void displayAccount() {
+    int accountNumber;
+    printf("Enter Account Number to view: ");
+    scanf("%d", &accountNumber);
+
+    struct Account* account = findAccount(accountNumber);
+    if (account == NULL) {
+        printf("Account not found.\n");
+        return;
+    }
+
+    printf("Account Number: %d\n", account->accountNumber);
+    printf("Customer Name: %s\n", account->customerName);
+    printf("Balance: %.2f\n", account->balance);
+}
+
+// Function to deposit money
+void deposit() {
+    int accountNumber;
+    printf("Enter Account Number to deposit into: ");
+    scanf("%d", &accountNumber);
+
+    struct Account* account = findAccount(accountNumber);
+    if (account == NULL) {
+        printf("Account not found.\n");
+        return;
+    }
+
+    float amount;
+    printf("Enter deposit amount: ");
+    scanf("%f", &amount);
+
+    if (amount <= 0) {
+        printf("Invalid deposit amount.\n");
+        return;
+    }
+
+    account->balance += amount;
+    printf("Deposited %.2f to Account Number %d. New Balance: %.2f\n", amount, accountNumber, account->balance);
+}
+
+// Function to withdraw money
+void withdraw() {
+    int accountNumber;
+    printf("Enter Account Number to withdraw from: ");
+    scanf("%d", &accountNumber);
+
+    struct Account* account = findAccount(accountNumber);
+    if (account == NULL) {
+        printf("Account not found.\n");
+        return;
+    }
+
+    float amount;
+    printf("Enter withdrawal amount: ");
+    scanf("%f", &amount);
+
+    if (amount <= 0) {
+        printf("Invalid withdrawal amount.\n");
+        return;
+    }
+
+    if (amount > account->balance) {
+        printf("Insufficient funds.\n");
+        return;
+    }
+
+    account->balance -= amount;
+    printf("Withdrew %.2f from Account Number %d. New Balance: %.2f\n", amount, accountNumber, account->balance);
+}
+
+// Function to transfer money between accounts
+void transfer() {
+    int fromAccountNumber, toAccountNumber;
+    printf("Enter Account Number to transfer from: ");
+    scanf("%d", &fromAccountNumber);
+
+    struct Account* fromAccount = findAccount(fromAccountNumber);
+    if (fromAccount == NULL) {
+        printf("From account not found.\n");
+        return;
+    }
+
+    printf("Enter Account Number to transfer to: ");
+    scanf("%d", &toAccountNumber);
+
+    struct Account* toAccount = findAccount(toAccountNumber);
+    if (toAccount == NULL) {
+        printf("To account not found.\n");
+        return;
+    }
+
+    float amount;
+    printf("Enter transfer amount: ");
+    scanf("%f", &amount);
+
+    if (amount <= 0) {
+        printf("Invalid transfer amount.\n");
+        return;
+    }
+
+    if (amount > fromAccount->balance) {
+        printf("Insufficient funds in the from account.\n");
+        return;
+    }
+
+    fromAccount->balance -= amount;
+    toAccount->balance += amount;
+    printf("Transferred %.2f from Account Number %d to Account Number %d.\n", amount, fromAccountNumber, toAccountNumber);
+}
+
+// Main menu function
+void mainMenu() {
+    int choice;
+    do {
+        printf("\nBank Management System\n");
+        printf("1. Create Account\n");
+        printf("2. Update Account\n");
+        printf("3. Display Account\n");
+        printf("4. Deposit\n");
+        printf("5. Withdraw\n");
+        printf("6. Transfer\n");
+        printf("7. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                createAccount();
+                break;
+            case 2:
+                updateAccount();
+                break;
+            case 3:
+                displayAccount();
+                break;
+            case 4:
+                deposit();
+                break;
+            case 5:
+                withdraw();
+                break;
+            case 6:
+                transfer();
+                break;
+            case 7:
+                printf("Exiting system...\n");
+                break;
+            default:
+                printf("Invalid choice. Try again.\n");
+        }
+    } while (choice != 7);
+}
+
+int main() {
+    mainMenu();
+    return 0;
+}
